@@ -1,35 +1,39 @@
-// src/utils/cleanData.js
+// CleanData.jsx
+
+export const formatDate = (value) => {
+  // Handle Excel serial number (e.g., 45000)
+  if (typeof value === 'number') {
+    const excelEpoch = new Date(1899, 11, 30);
+    const date = new Date(excelEpoch.getTime() + value * 86400000);
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  const date = new Date(value);
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
 
 export const cleanData = (data) => {
-  const aggregatedData = {};
+  const aggregated = {};
 
-  // Loop through each data entry
   data.forEach((row) => {
     const formattedDate = formatDate(row['date']);
-    const key = `${formattedDate}-${row['name']}`;
+    const name = row['name'];
+    const key = `${formattedDate}-${name}`;
 
-    if (!aggregatedData[key]) {
-      aggregatedData[key] = {
+    if (!aggregated[key]) {
+      aggregated[key] = {
         date: formattedDate,
-        name: row['name'],
+        name,
         dispatch: 0,
-        delay: 0,
+        delays: 0,
         completion: 0,
       };
     }
 
-    // Aggregate values for dispatch, delay, and completion
-    aggregatedData[key].dispatch += row['dispatch'];
-    aggregatedData[key].delay += row['delay'];
-    aggregatedData[key].completion += row['completion'];
+    aggregated[key].dispatch += Number(row['dispatch']) || 0;
+    aggregated[key].delays += Number(row['delays']) || 0;
+    aggregated[key].completion += Number(row['completion']) || 0;
   });
 
-  // Convert the aggregated data back into an array
-  return Object.values(aggregatedData);
-};
-
-export const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  const options = { day: '2-digit', month: 'numeric', year: 'numeric' };
-  return date.toLocaleDateString('en-GB', options); // Format to DD M YYYY (e.g., 03 2 2025)
+  return Object.values(aggregated);
 };
