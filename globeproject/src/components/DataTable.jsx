@@ -1,31 +1,35 @@
-// DataTable.jsx
 import React from 'react';
 
 const Table = ({ data, columns }) => {
-  if (!data || data.length === 0) return <div>No data available to display.</div>;
-  if (!columns || columns.length === 0) return <div>Table</div>;
+  if (!data || data.length === 0) return <div className="text-gray-400">No data available to display.</div>;
+  if (!columns || columns.length === 0) return <div className="text-gray-400">Table</div>;
 
   return (
-    <div className="overflow-auto max-h-[400px] border rounded-lg mt-4">
-      <table className="min-w-full text-sm text-left">
-        <thead className="bg-gray-100 sticky top-0">
-          <tr>
-            {columns.map((column) => (
-              <th key={column.accessor} className="p-2 font-medium">{column.Header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, idx) => (
-            <tr key={idx} className="border-b">
-              {columns.map((column) => (
-                <td key={column.accessor} className="p-2">{row[column.accessor]}</td>
-              ))}
-            </tr>
+    <div className="overflow-auto max-h-[880px] border border-gray-700 rounded-lg mt-4 custom-scrollbar">
+  <table className="min-w-full text-sm text-left text-gray-200">
+    <thead className="bg-gray-800 sticky top-0 z-10">
+      <tr>
+        {columns.map((column) => (
+          <th key={column.accessor} className="p-3 font-semibold text-white border-b border-gray-700 whitespace-nowrap">
+            {column.Header}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody className="bg-[#1f2937]">
+      {data.map((row, idx) => (
+        <tr key={idx} className="border-b border-gray-700 hover:bg-gray-700 transition duration-200">
+          {columns.map((column) => (
+            <td key={column.accessor} className="p-3 whitespace-nowrap">
+              {row[column.accessor]}
+            </td>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
   );
 };
 

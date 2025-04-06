@@ -68,33 +68,65 @@ const Charts = ({ data }) => {
       pointHoverRadius: 8, // Increase the point size when hovered
     })),
   };
+  const lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          font: {
+            size: 12, // make legend text smaller
+          },
+          padding: 20, // add spacing between legend and chart
+        },
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      },
+    },
+    layout: {
+      padding: {
+        top: 20,
+        bottom: 20,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 10,
+        },
+      },
+    },
+  };
 
-  // Bar Chart: Dispatch & Delay
+  // Define distinct and vivid colors
+  const dispatchColor = 'rgba(54, 162, 235, 0.8)';
+  const delayColor = 'rgba(255, 159, 64, 0.8)';
+
   const barChartData = {
     labels: dates,
     datasets: [
-      ...names.map((name) => ({
-        label: `${name} - Dispatch`,
-        data: dates.map((date) => {
-          const entry = filteredData.find((item) => item.date === date && item.name === name);
-          return entry ? entry.dispatch : 0;
-        }),
-        backgroundColor: activeBar === `${name} - Dispatch` ? 'rgba(75, 192, 192, 1)' : 'rgba(75, 192, 192, 0.4)',
-        borderColor: 'rgba(75, 192, 192, 1)',
+      {
+        label: 'Dispatch',
+        data: dates.map((date) =>
+          filteredData.reduce((sum, item) => (item.date === date ? sum + item.dispatch : sum), 0)
+        ),
+        backgroundColor: dispatchColor,
+        borderColor: 'rgba(54, 162, 235, 1)',
         borderWidth: 1,
-        hidden: activeBar && activeBar !== `${name} - Dispatch`, // Hide other dispatch bars if one is active
-      })),
-      ...names.map((name) => ({
-        label: `${name} - Delay`,
-        data: dates.map((date) => {
-          const entry = filteredData.find((item) => item.date === date && item.name === name);
-          return entry ? entry.delays : 0;
-        }),
-        backgroundColor: activeBar === `${name} - Delay` ? 'rgba(255, 99, 132, 1)' : 'rgba(255, 99, 132, 0.4)',
-        borderColor: 'rgba(255, 99, 132, 1)',
+      },
+      {
+        label: 'Delay',
+        data: dates.map((date) =>
+          filteredData.reduce((sum, item) => (item.date === date ? sum + item.delays : sum), 0)
+        ),
+        backgroundColor: delayColor,
+        borderColor: 'rgba(255, 159, 64, 1)',
         borderWidth: 1,
-        hidden: activeBar && activeBar !== `${name} - Delay`, // Hide other delay bars if one is active
-      })),
+      },
     ],
   };
 
@@ -119,27 +151,78 @@ const Charts = ({ data }) => {
   };
 
   return (
-    <div className="my-4 space-y-8">
+    <div className="my-8 space-y-8">
+  {/* Filter Section */}
+  <div className="p-6 bg-[#1f2937] rounded-lg shadow-lg border border-gray-700">
+    <div className="flex justify-between space-x-6">
+      {/* Date Filter */}
+      <div className="flex-1">
+        <h3 className="text-lg font-semibold text-white">Filter by Date:</h3>
+        <select
+          className="mt-2 p-3 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white transition duration-300 ease-in-out hover:border-indigo-300"
+          value={selectedDate || 'All'}
+          onChange={handleDateChange}
+        >
+          <option value="All" className="text-gray-700">All Dates</option>
+          {dates.map((date) => (
+            <option key={date} value={date} className="text-gray-700">
+              {date}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Name Filter */}
+      <div className="flex-1">
+        <h3 className="text-lg font-semibold text-white">Filter by Name:</h3>
+        <select
+          className="mt-2 p-3 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white transition duration-300 ease-in-out hover:border-indigo-300"
+          value={selectedName || 'All'}
+          onChange={handleNameChange}
+        >
+          <option value="All" className="text-gray-700">All Names</option>
+          {names.map((name) => (
+            <option key={name} value={name} className="text-gray-700">
+              {name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Restore All Button */}
+      <div className="flex-1 flex items-end justify-end">
+        <button
+          onClick={restoreCharts}
+          className="mt-6 p-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:bg-indigo-500 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        >
+          Restore All Charts
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+      {/* Charts Section */}
       <div>
         <h2 className="text-xl font-semibold mb-2">📈 Line Chart: Completion</h2>
         <Line
           data={lineChartData}
           options={{
             responsive: true,
-            maintainAspectRatio: true, // Make the chart responsive
+            maintainAspectRatio: true,
             plugins: {
               tooltip: {
-                enabled: true, // Enable tooltip
-                mode: 'nearest', // Show tooltip for nearest data point
-                intersect: true, // Only show tooltip when hovering directly over a point
+                enabled: true,
+                mode: 'nearest',
+                intersect: true,
                 callbacks: {
-                  title: (tooltipItems) => tooltipItems[0]?.dataset.label, // Show the name of the dataset in the tooltip title
+                  title: (tooltipItems) => tooltipItems[0]?.dataset.label,
                   label: (tooltipItem) => {
-                    return `${tooltipItem.dataset.label}: Completion: ${tooltipItem.raw}`; // Display name and completion value
+                    return `${tooltipItem.dataset.label}: Completion: ${tooltipItem.raw}`;
                   },
                 },
-                bodyFont: { size: 10 }, // Make the tooltip text small
-                titleFont: { size: 10 }, // Make the tooltip title small
+                bodyFont: { size: 10 },
+                titleFont: { size: 10 },
               },
             },
             onClick: handleLineClick,
@@ -153,68 +236,27 @@ const Charts = ({ data }) => {
           data={barChartData}
           options={{
             responsive: true,
-            maintainAspectRatio: true, // Make the chart responsive
+            maintainAspectRatio: true,
             plugins: {
               tooltip: {
-                enabled: true, // Enable tooltip
-                mode: 'nearest', // Only show the nearest bar
-                intersect: true, // Only show tooltip when hovering directly over a bar
+                enabled: true,
+                mode: 'nearest',
+                intersect: true,
                 callbacks: {
-                  title: () => '', // Remove the title (just show value and label)
+                  title: () => '',
                   label: (tooltipItem) => {
                     const dataset = tooltipItem.dataset.label.split(' - ');
-                    return `${dataset[0]}: ${tooltipItem.raw}`; // Show only the label and value
+                    return `${dataset[0]}: ${tooltipItem.raw}`;
                   },
                 },
-                bodyFont: { size: 10 }, // Make the tooltip text small
-                titleFont: { size: 10 }, // Make the tooltip title small
+                bodyFont: { size: 10 },
+                titleFont: { size: 10 },
               },
             },
             onClick: handleBarClick,
           }}
         />
       </div>
-
-      <div className="mt-4 space-y-4">
-        <div>
-          <h3 className="text-lg font-medium">Filter by Date:</h3>
-          <select
-            className="mt-2 p-2 border border-gray-300 rounded-md"
-            value={selectedDate || 'All'}
-            onChange={handleDateChange}
-          >
-            <option value="All">All Dates</option>
-            {dates.map((date) => (
-              <option key={date} value={date}>
-                {date}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <h3 className="text-lg font-medium">Filter by Name:</h3>
-          <select
-            className="mt-2 p-2 border border-gray-300 rounded-md"
-            value={selectedName || 'All'}
-            onChange={handleNameChange}
-          >
-            <option value="All">All Names</option>
-            {names.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <button
-        onClick={restoreCharts}
-        className="mt-4 p-2 bg-blue-500 text-white rounded-lg"
-      >
-        Restore All Charts
-      </button>
     </div>
   );
 };
